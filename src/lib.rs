@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
 #[derive(Copy, Clone)]
 struct Slice<const N: usize, T: Copy> {
@@ -6,7 +6,7 @@ struct Slice<const N: usize, T: Copy> {
 }
 
 #[derive(Copy, Clone)]
-struct Vec<T, IDX: Copy> {
+struct VecRep<T, IDX: Copy> {
     delta: IDX,
     length: IDX,
     phantom: PhantomData<T>,
@@ -18,9 +18,56 @@ struct Str<const N: usize> {
 }
 
 #[derive(Copy, Clone)]
-struct String<IDX> {
+struct StringRep<IDX> {
     delta: IDX,
     length: IDX,
+}
+
+struct View<'a, T: Copy, IDX: Copy> {
+    buffer: &'a [u8],
+    phantom: PhantomData<(T, IDX)>,
+}
+
+impl<'a, T: Copy, IDX: Copy> View<'a, T, IDX> {
+    pub fn new(buffer: &'a [u8]) -> Self {
+        Self {
+            buffer,
+            phantom: PhantomData,
+        }
+    }
+}
+
+// impl<'a, T: Copy + Debug, IDX: Copy> Debug for View<'a, T, IDX> {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         // let len: IDX = 42;
+//         //f.debug_list().entry(&"todo").finish()
+//         // debug_struct("VecView").field("buffer", &self.buffer).field("phantom", &self.phantom).finish()
+//         f.write_str("todo")
+//     }
+// }
+
+trait ReadIndex: Copy {
+    //+ Into<usize> {
+    fn read(buffer: &[u8]) -> usize;
+}
+
+impl ReadIndex for u8 {
+    fn read(buffer: &[u8]) -> usize {
+        buffer[0].into()
+    }
+}
+
+impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let start = IDX::read(self.buffer);
+        let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
+        let view = &self.buffer[start..(start + len)];
+        let string = std::str::from_utf8(view)
+            .or_else(|e| std::str::from_utf8(&view[..e.valid_up_to()]))
+            .unwrap();
+        f.write_str(string)
+        //        f.debug_struct("View").field("buffer", &self.buffer).field("phantom", &self.phantom).finish()
+    }
 }
 
 #[cfg(test)]
@@ -29,6 +76,15 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let buffer: [u8;_] = [];
+        let buffer: [u8; 22] = [
+            /* toplevel vec */ 2, 2, /* 1st level entries(2 vecs) */ 4, 3, 12, 1,
+            /* 2nd level entries (3 strings) */ 6, 1, 5, 1, 4, 2, /* String */ b'A',
+            /* String */ b'B', /* String */ b'C', b'C',
+            /* 2nd level entries (1 string) */ 2, 4, /* String */ b't', b'e', b's', b't',
+        ];
+        //let vec = VecView::<VecRep<StringRep<u8>, u8>, u8>::new(&buffer);
+        // dbg!(vec);
+        let str = View::<StringRep<u8>, u8>::new(&buffer[16..]);
+        dbg!(str);
     }
 }
