@@ -57,7 +57,7 @@ impl ReadIndex for u8 {
     }
 }
 
-impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX> {
+impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX>  {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start = IDX::read(self.buffer);
         let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
@@ -66,7 +66,21 @@ impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX> {
             .or_else(|e| std::str::from_utf8(&view[..e.valid_up_to()]))
             .unwrap();
         f.write_str(string)
-        //        f.debug_struct("View").field("buffer", &self.buffer).field("phantom", &self.phantom).finish()
+    }
+}
+
+impl<'a, T: Copy, IDX: ReadIndex> Debug for View<'a, VecRep<T, IDX>, IDX> where View<'a, T, IDX>: Debug {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let start = IDX::read(self.buffer);
+        let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
+        let elems = &self.buffer[start..];
+        let elemsize = std::mem::size_of::<T>();
+        let mut lst = f.debug_list();
+        for i in 0..len {
+            let elem = &elems[i*elemsize..];
+            lst.entry(&View::<T, IDX>::new(elem));
+        }
+        lst.finish()
     }
 }
 
@@ -90,5 +104,7 @@ mod tests {
         assert_eq!(format!("{str:?}"), "A");
         let str = View::<StringRep<u8>, u8>::new(&buffer[10..]);
         assert_eq!(format!("{str:?}"), "CC");
+        let vec = View::<VecRep<StringRep<u8>, u8>, u8>::new(&buffer[2..]);
+        assert_eq!(format!("{vec:?}"), "[A, B, CC]");
     }
 }
