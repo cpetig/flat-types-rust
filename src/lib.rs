@@ -57,7 +57,7 @@ impl ReadIndex for u8 {
     }
 }
 
-impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX>  {
+impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start = IDX::read(self.buffer);
         let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
@@ -69,7 +69,10 @@ impl<'a, IDX: ReadIndex> Debug for View<'a, StringRep<IDX>, IDX>  {
     }
 }
 
-impl<'a, T: Copy, IDX: ReadIndex> Debug for View<'a, VecRep<T, IDX>, IDX> where View<'a, T, IDX>: Debug {
+impl<'a, T: Copy, IDX: ReadIndex> Debug for View<'a, VecRep<T, IDX>, IDX>
+where
+    View<'a, T, IDX>: Debug,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let start = IDX::read(self.buffer);
         let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
@@ -77,7 +80,7 @@ impl<'a, T: Copy, IDX: ReadIndex> Debug for View<'a, VecRep<T, IDX>, IDX> where 
         let elemsize = std::mem::size_of::<T>();
         let mut lst = f.debug_list();
         for i in 0..len {
-            let elem = &elems[i*elemsize..];
+            let elem = &elems[i * elemsize..];
             lst.entry(&View::<T, IDX>::new(elem));
         }
         lst.finish()
