@@ -85,6 +85,10 @@ mod tests {
         //let vec = VecView::<VecRep<StringRep<u8>, u8>, u8>::new(&buffer);
         // dbg!(vec);
         let str = View::<StringRep<u8>, u8>::new(&buffer[16..]);
-        dbg!(str);
+        assert_eq!(format!("{str:?}"), "test");
+        let str = View::<StringRep<u8>, u8>::new(&buffer[6..]);
+        assert_eq!(format!("{str:?}"), "A");
+        let str = View::<StringRep<u8>, u8>::new(&buffer[10..]);
+        assert_eq!(format!("{str:?}"), "CC");
     }
 }
