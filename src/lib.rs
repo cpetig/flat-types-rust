@@ -1,24 +1,27 @@
-#[derive(Copy)]
-struct Slice<T> {
-    slice: [T],
-};
+use std::marker::PhantomData;
 
-#[derive(Copy)]
-struct Vec<T> {
+#[derive(Copy, Clone)]
+struct Slice<const N: usize, T: Copy> {
+    slice: [T; N],
+}
+
+#[derive(Copy, Clone)]
+struct Vec<T, IDX: Copy> {
     delta: IDX,
     length: IDX,
-};
+    phantom: PhantomData<T>,
+}
 
-#[derive(Copy)]
-struct Str {
-    slice: [u8],
-};
+#[derive(Copy, Clone)]
+struct Str<const N: usize> {
+    slice: [u8; N],
+}
 
-#[derive(Copy)]
+#[derive(Copy, Clone)]
 struct String<IDX> {
     delta: IDX,
     length: IDX,
-};
+}
 
 #[cfg(test)]
 mod tests {
