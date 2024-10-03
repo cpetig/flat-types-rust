@@ -109,5 +109,7 @@ mod tests {
         assert_eq!(format!("{str:?}"), "CC");
         let vec = View::<VecRep<StringRep<u8>, u8>, u8>::new(&buffer[2..]);
         assert_eq!(format!("{vec:?}"), "[A, B, CC]");
+        let vec = View::<VecRep<VecRep<StringRep<u8>, u8>, u8>, u8>::new(&buffer);
+        assert_eq!(format!("{vec:?}"), "[[A, B, CC], [test]]");
     }
 }
