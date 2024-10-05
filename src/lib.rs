@@ -1,9 +1,7 @@
 use std::{fmt::Debug, marker::PhantomData};
+mod view;
 
-// #[derive(Copy, Clone)]
-// struct Slice<const N: usize, T: Copy> {
-//     slice: [T; N],
-// }
+pub use view::View;
 
 #[derive(Copy, Clone)]
 struct Vec<T, IDX: Copy> {
@@ -12,29 +10,10 @@ struct Vec<T, IDX: Copy> {
     phantom: PhantomData<T>,
 }
 
-// #[derive(Copy, Clone)]
-// struct Str<const N: usize> {
-//     slice: [u8; N],
-// }
-
 #[derive(Copy, Clone)]
 struct String<IDX> {
     delta: IDX,
     length: IDX,
-}
-
-struct View<'a, T: Copy> {
-    buffer: &'a [u8],
-    phantom: PhantomData<T>,
-}
-
-impl<'a, T: Copy> View<'a, T> {
-    pub fn new(buffer: &'a [u8]) -> Self {
-        Self {
-            buffer,
-            phantom: PhantomData,
-        }
-    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -150,10 +129,7 @@ impl<'a, IDX: IndexType + Copy> Assign<'a, &str, String<IDX>> for Writer<'a, Str
         IDX::write(self.buffer, data_pos)?;
         IDX::write(&mut self.buffer[core::mem::size_of::<IDX>()..], len)?;
         self.buffer[data_pos..data_pos + len].copy_from_slice(value.as_bytes());
-        Ok(View {
-            buffer: &self.buffer[0..self.current_end],
-            phantom: PhantomData,
-        })
+        Ok(View::new(&self.buffer[0..self.current_end]))
     }
 }
 
