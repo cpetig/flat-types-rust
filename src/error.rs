@@ -7,5 +7,7 @@ pub enum Error {
     /// invalid input values (validation)
     InvalidValue,
     /// Allocated vector is too small
-    AllocationTooSmall,
+    AllocationTooSmall(usize),
+    /// Allocated vector is too large
+    AllocationTooLarge(usize, usize),
 }

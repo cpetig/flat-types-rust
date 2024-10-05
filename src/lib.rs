@@ -47,6 +47,7 @@ mod tests {
         writer.push(|w| w.set("hello")).expect("element created");
         writer.push(|w| w.set("world")).expect("element created");
         let view = writer.finish().expect("ready");
+        //        dbg!(&view.buffer);
         assert_eq!(format!("{view:?}"), "[hello, world]");
     }
 }

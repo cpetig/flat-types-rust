@@ -46,7 +46,12 @@ impl<'a: 'short, 'short, T: Copy, IDX: IndexType + Copy> Fill<'a, 'short, Vec<T,
     }
 
     fn finish(self) -> Result<View<'a, Vec<T, IDX>>, crate::Error> {
-        todo!()
+        // cache this?
+        let alloc_size = IDX::read(&self.buffer[core::mem::size_of::<IDX>()..]);
+        if self.valid_elements != alloc_size {
+            return Err(Error::AllocationTooLarge(self.valid_elements, alloc_size));
+        }
+        Ok(View::new(&self.buffer[..self.current_end]))
     }
 
     fn push<'slf: 'short, F: Fn(Creator<'short, T>) -> Result<View<'short, T>, crate::Error>>(
@@ -58,7 +63,7 @@ impl<'a: 'short, 'short, T: Copy, IDX: IndexType + Copy> Fill<'a, 'short, Vec<T,
         let alloc_size = IDX::read(&self.buffer[core::mem::size_of::<IDX>()..]);
         let mut start = IDX::read(self.buffer);
         if self.valid_elements >= alloc_size {
-            return Err(Error::AllocationTooSmall);
+            return Err(Error::AllocationTooSmall(alloc_size));
         }
         start += self.valid_elements * elem_size;
         let sub_allocation = self.current_end - start;
@@ -69,6 +74,7 @@ impl<'a: 'short, 'short, T: Copy, IDX: IndexType + Copy> Fill<'a, 'short, Vec<T,
             assert!(sub_allocation < view.buffer.len());
             self.current_end = view.buffer.len() + start;
         }
+        self.valid_elements += 1;
         Ok(())
     }
 }
