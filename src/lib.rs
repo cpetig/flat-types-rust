@@ -47,7 +47,29 @@ mod tests {
         writer.push(|w| w.set("hello")).expect("element created");
         writer.push(|w| w.set("world")).expect("element created");
         let view = writer.finish().expect("ready");
-        //        dbg!(&view.buffer);
         assert_eq!(format!("{view:?}"), "[hello, world]");
+
+        let mut writer =
+            Creator::<Vec<Vec<String<SmallIndex>, SmallIndex>, SmallIndex>>::new(&mut writebuffer);
+        writer.allocate(2).expect("root alloc");
+        writer
+            .push(|mut w| {
+                w.allocate(3)?;
+                w.push(|s| s.set("A"))?;
+                w.push(|s| s.set("B"))?;
+                w.push(|s| s.set("C"))?;
+                w.finish()
+            })
+            .expect("subvec1 created");
+        writer
+            .push(|mut w| {
+                w.allocate(1)?;
+                w.push(|s| s.set("test"))?;
+                w.finish()
+            })
+            .expect("subvec2 created");
+        let view = writer.finish().expect("ready");
+        dbg!(&view.buffer);
+        assert_eq!(format!("{view:?}"), "[[A, B, C], [test]]");
     }
 }
