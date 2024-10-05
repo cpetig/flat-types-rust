@@ -13,4 +13,3 @@ impl<'a, T: Copy> View<'a, T> {
         }
     }
 }
-

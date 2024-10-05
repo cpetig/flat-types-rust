@@ -1,5 +1,5 @@
-use std::marker::PhantomData;
 use super::{Error, View};
+use std::marker::PhantomData;
 
 pub struct Context<'a> {
     buffer: &'a mut [u8],
