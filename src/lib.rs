@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 mod error;
 mod index_type;
 mod string;
@@ -11,12 +10,7 @@ use index_type::IndexType;
 pub use string::String;
 pub use vec::Vec;
 pub use view::View;
-pub use writer::{Assign, Context, Writer};
-//use writer::{};
-
-// impl<'a, T: Copy, U: Assignable<T>> Writer<'a,T> {
-//         pub fn set(&mut self, value: U) -> View<'a, T> { todo!()}
-// }
+pub use writer::{Assign, Context, Creator};
 
 #[cfg(test)]
 mod tests {
@@ -43,7 +37,7 @@ mod tests {
 
         let mut writebuffer = [0u8; 256];
         let ctx = Context::new(&mut writebuffer);
-        let writer = Writer::<String<u8>>::new(ctx);
+        let writer = Creator::<String<u8>>::new(ctx);
         let view = writer.set("test").expect("write ok");
         assert_eq!(format!("{view:?}"), "test");
     }

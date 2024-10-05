@@ -1,5 +1,6 @@
 use std::marker::PhantomData;
 
+/// Read access to a particular type inside a flat buffer
 pub struct View<'a, T: Copy> {
     pub(crate) buffer: &'a [u8],
     phantom: PhantomData<T>,

@@ -1,6 +1,7 @@
-use super::{Assign, Error, IndexType, View, Writer};
+use super::{Assign, Error, IndexType, View, Creator};
 use std::fmt::Debug;
 
+/// String inside a flat buffer
 #[derive(Copy, Clone)]
 pub struct String<IDX> {
     delta: IDX,
@@ -19,7 +20,7 @@ impl<'a, IDX: IndexType + Copy> Debug for View<'a, String<IDX>> {
     }
 }
 
-impl<'a, IDX: IndexType + Copy> Assign<'a, &str, String<IDX>> for Writer<'a, String<IDX>> {
+impl<'a, IDX: IndexType + Copy> Assign<'a, &str, String<IDX>> for Creator<'a, String<IDX>> {
     fn set(mut self, value: &str) -> Result<View<'a, String<IDX>>, Error> {
         if self.current_end != 0 {
             return Err(Error::BufferBusy);

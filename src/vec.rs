@@ -2,6 +2,7 @@ use super::{IndexType, View};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+/// Vector inside a flat buffer
 #[derive(Copy, Clone)]
 pub struct Vec<T, IDX: Copy> {
     delta: IDX,
