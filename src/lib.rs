@@ -1,7 +1,12 @@
 use std::{fmt::Debug, marker::PhantomData};
 mod view;
+mod writer;
+mod error;
 
 pub use view::View;
+pub use writer::{Writer, Assign, Context};
+pub use error::Error;
+//use writer::{};
 
 #[derive(Copy, Clone)]
 struct Vec<T, IDX: Copy> {
@@ -14,16 +19,6 @@ struct Vec<T, IDX: Copy> {
 struct String<IDX> {
     delta: IDX,
     length: IDX,
-}
-
-#[derive(Debug, Copy, Clone)]
-enum Error {
-    /// overflow
-    BufferTooSmall,
-    /// buffer is already in use
-    BufferBusy,
-    /// invalid input values (validation)
-    InvalidValue,
 }
 
 trait IndexType {
@@ -77,40 +72,6 @@ where
             lst.entry(&View::<T>::new(elem));
         }
         lst.finish()
-    }
-}
-
-struct Context<'a> {
-    buffer: &'a mut [u8],
-}
-
-impl<'a> Context<'a> {
-    pub fn new(buffer: &'a mut [u8]) -> Self {
-        Self { buffer }
-    }
-}
-
-struct Writer<'a, T> {
-    buffer: &'a mut [u8],
-    phantom: PhantomData<T>,
-    current_end: usize,
-}
-
-trait Assign<'a, T, U: Copy> {
-    fn set(self, value: T) -> Result<View<'a, U>, Error>;
-}
-
-// trait Assignable<T> {
-//     fn set(obj: &mut T, value: Self);
-// }
-
-impl<'a, T: Copy> Writer<'a, T> {
-    pub fn new(ctx: Context<'a>) -> Self {
-        Self {
-            buffer: ctx.buffer,
-            phantom: PhantomData,
-            current_end: 0,
-        }
     }
 }
 
