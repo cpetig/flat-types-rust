@@ -42,6 +42,7 @@ mod tests {
         let writer = Creator::<String<SmallIndex>>::new(ctx);
         let view = writer.set("test").expect("write ok");
         assert_eq!(format!("{view:?}"), "test");
+
         let mut writer =
             Creator::<Vec<String<SmallIndex>, SmallIndex>>::new(Context::new(&mut writebuffer));
         writer.allocate(2).expect("root alloc");

@@ -16,7 +16,7 @@ pub struct Creator<'a, T> {
     pub(crate) buffer: &'a mut [u8],
     phantom: PhantomData<T>,
     pub(crate) current_end: usize,
-    pub(crate) missing_elements: usize,
+    pub(crate) valid_elements: usize,
 }
 
 pub trait Assign<'a, T, U: Copy> {
@@ -43,7 +43,7 @@ impl<'a, T: Copy> Creator<'a, T> {
             buffer: ctx.buffer,
             phantom: PhantomData,
             current_end: 0,
-            missing_elements: 0,
+            valid_elements: 0,
         }
     }
 }

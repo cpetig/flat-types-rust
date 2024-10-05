@@ -1,5 +1,5 @@
 use super::writer::Fill;
-use super::{Creator, IndexType, View};
+use super::{Creator, IndexType, View, Error};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -31,13 +31,21 @@ where
 
 impl<'a, T: Copy, IDX: IndexType + Copy> Fill<'a, Vec<T, IDX>, T> for Creator<'a, Vec<T, IDX>> {
     fn allocate(&mut self, size: usize) -> Result<(), crate::Error> {
-        todo!()
+        if self.current_end != 0 || self.valid_elements!=0 {
+            return Err(Error::BufferBusy);
+        }
+        let data_pos = 2 * core::mem::size_of::<IDX>();
+        let elem_size = core::mem::size_of::<T>();
+        self.current_end += data_pos + size * elem_size;
+        IDX::write(self.buffer, data_pos)?;
+        IDX::write(&mut self.buffer[core::mem::size_of::<IDX>()..], size)?;
+        Ok(())
     }
 
     fn finish(self) -> Result<View<'a, Vec<T, IDX>>, crate::Error> {
         todo!()
     }
-    
+
     fn push<F: Fn(Creator<'a, T>) -> Result<View<'a, T>, crate::Error>>(
         &mut self,
         f: F,
