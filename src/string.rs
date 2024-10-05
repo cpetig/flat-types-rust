@@ -1,4 +1,4 @@
-use super::{Assign, Error, IndexType, View, Creator};
+use super::{Assign, Creator, Error, IndexType, View};
 use std::fmt::Debug;
 
 /// String inside a flat buffer

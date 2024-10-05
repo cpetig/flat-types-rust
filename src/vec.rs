@@ -1,4 +1,5 @@
-use super::{IndexType, View};
+use super::writer::Fill;
+use super::{Creator, IndexType, View};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -25,5 +26,22 @@ where
             lst.entry(&View::<T>::new(elem));
         }
         lst.finish()
+    }
+}
+
+impl<'a, T: Copy, IDX: IndexType + Copy> Fill<'a, Vec<T, IDX>, T> for Creator<'a, Vec<T, IDX>> {
+    fn allocate(&mut self, size: usize) -> Result<(), crate::Error> {
+        todo!()
+    }
+
+    fn finish(self) -> Result<View<'a, Vec<T, IDX>>, crate::Error> {
+        todo!()
+    }
+    
+    fn push<F: Fn(Creator<'a, T>) -> Result<View<'a, T>, crate::Error>>(
+        &mut self,
+        f: F,
+    ) -> Result<(), crate::Error> {
+        todo!()
     }
 }
