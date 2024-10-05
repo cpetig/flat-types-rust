@@ -6,4 +6,6 @@ pub enum Error {
     BufferBusy,
     /// invalid input values (validation)
     InvalidValue,
+    /// Allocated vector is too small
+    AllocationTooSmall,
 }

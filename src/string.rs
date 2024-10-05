@@ -22,12 +22,13 @@ impl<'a, IDX: IndexType + Copy> Debug for View<'a, String<IDX>> {
 
 impl<'a, IDX: IndexType + Copy> Assign<'a, &str, String<IDX>> for Creator<'a, String<IDX>> {
     fn set(mut self, value: &str) -> Result<View<'a, String<IDX>>, Error> {
-        if self.current_end != 0 {
-            return Err(Error::BufferBusy);
-        }
-        let data_pos = 2 * core::mem::size_of::<IDX>();
+        // if self.current_end != 0 {
+        //     return Err(Error::BufferBusy);
+        // }
+        let data_pos = self.current_end;
+        //        2 * core::mem::size_of::<IDX>();
         let len = value.len();
-        self.current_end += data_pos + len;
+        self.current_end += len;
         IDX::write(self.buffer, data_pos)?;
         IDX::write(&mut self.buffer[core::mem::size_of::<IDX>()..], len)?;
         self.buffer[data_pos..data_pos + len].copy_from_slice(value.as_bytes());

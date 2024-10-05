@@ -10,7 +10,7 @@ use index_type::IndexType;
 pub use string::String;
 pub use vec::Vec;
 pub use view::View;
-pub use writer::{Assign, Context, Creator, Fill};
+pub use writer::{Assign, Creator, Fill};
 
 #[cfg(test)]
 mod tests {
@@ -38,13 +38,11 @@ mod tests {
         assert_eq!(format!("{vec:?}"), "[[A, B, CC], [test]]");
 
         let mut writebuffer = [0u8; 256];
-        let ctx = Context::new(&mut writebuffer);
-        let writer = Creator::<String<SmallIndex>>::new(ctx);
+        let writer = Creator::<String<SmallIndex>>::new(&mut writebuffer);
         let view = writer.set("test").expect("write ok");
         assert_eq!(format!("{view:?}"), "test");
 
-        let mut writer =
-            Creator::<Vec<String<SmallIndex>, SmallIndex>>::new(Context::new(&mut writebuffer));
+        let mut writer = Creator::<Vec<String<SmallIndex>, SmallIndex>>::new(&mut writebuffer);
         writer.allocate(2).expect("root alloc");
         writer.push(|w| w.set("hello")).expect("element created");
         writer.push(|w| w.set("world")).expect("element created");

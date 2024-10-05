@@ -1,5 +1,5 @@
 use super::writer::Fill;
-use super::{Creator, IndexType, View, Error};
+use super::{Creator, Error, IndexType, View};
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
@@ -29,14 +29,17 @@ where
     }
 }
 
-impl<'a, T: Copy, IDX: IndexType + Copy> Fill<'a, Vec<T, IDX>, T> for Creator<'a, Vec<T, IDX>> {
+impl<'a: 'short, 'short, T: Copy, IDX: IndexType + Copy> Fill<'a, 'short, Vec<T, IDX>, T>
+    for Creator<'a, Vec<T, IDX>>
+{
     fn allocate(&mut self, size: usize) -> Result<(), crate::Error> {
-        if self.current_end != 0 || self.valid_elements!=0 {
+        if self.valid_elements != 0 {
             return Err(Error::BufferBusy);
         }
-        let data_pos = 2 * core::mem::size_of::<IDX>();
+        let data_pos = self.current_end;
+        //        2 * core::mem::size_of::<IDX>();
         let elem_size = core::mem::size_of::<T>();
-        self.current_end += data_pos + size * elem_size;
+        self.current_end += size * elem_size;
         IDX::write(self.buffer, data_pos)?;
         IDX::write(&mut self.buffer[core::mem::size_of::<IDX>()..], size)?;
         Ok(())
@@ -46,10 +49,26 @@ impl<'a, T: Copy, IDX: IndexType + Copy> Fill<'a, Vec<T, IDX>, T> for Creator<'a
         todo!()
     }
 
-    fn push<F: Fn(Creator<'a, T>) -> Result<View<'a, T>, crate::Error>>(
-        &mut self,
+    fn push<'slf: 'short, F: Fn(Creator<'short, T>) -> Result<View<'short, T>, crate::Error>>(
+        &'slf mut self,
         f: F,
     ) -> Result<(), crate::Error> {
-        todo!()
+        let elem_size = core::mem::size_of::<T>();
+        // cache this?
+        let alloc_size = IDX::read(&self.buffer[core::mem::size_of::<IDX>()..]);
+        let mut start = IDX::read(self.buffer);
+        if self.valid_elements >= alloc_size {
+            return Err(Error::AllocationTooSmall);
+        }
+        start += self.valid_elements * elem_size;
+        let sub_allocation = self.current_end - start;
+        let sub_creator = Creator::new_filled(&mut self.buffer[start..], sub_allocation);
+        let view = f(sub_creator)?;
+        if view.buffer.len() != sub_allocation {
+            assert!(self.current_end < view.buffer.len() + start);
+            assert!(sub_allocation < view.buffer.len());
+            self.current_end = view.buffer.len() + start;
+        }
+        Ok(())
     }
 }
