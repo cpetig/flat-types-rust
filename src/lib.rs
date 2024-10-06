@@ -16,8 +16,10 @@ pub use writer::{Assign, Creator, Fill};
 mod tests {
     use super::*;
 
+    type SmallIndex = u8;
+
     #[test]
-    fn it_works() {
+    fn reading() {
         let buffer: [u8; 22] = [
             /* toplevel vec */ 2, 2, /* 1st level entries(2 vecs) */ 4, 3, 12, 1,
             /* 2nd level entries (3 strings) */ 6, 1, 5, 1, 4, 2, /* String */ b'A',
@@ -25,7 +27,6 @@ mod tests {
             /* 2nd level entries (1 string) */ 2, 4, /* String */ b't', b'e', b's', b't',
         ];
         /// Make intention explicit and distinguish from buffer bytes
-        type SmallIndex = u8;
         let str = View::<String<SmallIndex>>::new(&buffer[16..]);
         assert_eq!(format!("{str:?}"), "test");
         let str = View::<String<SmallIndex>>::new(&buffer[6..]);
@@ -36,7 +37,10 @@ mod tests {
         assert_eq!(format!("{vec:?}"), "[A, B, CC]");
         let vec = View::<Vec<Vec<String<SmallIndex>, SmallIndex>, SmallIndex>>::new(&buffer);
         assert_eq!(format!("{vec:?}"), "[[A, B, CC], [test]]");
+    }
 
+    #[test]
+    fn writing() {
         let mut writebuffer = [0u8; 256];
         let writer = Creator::<String<SmallIndex>>::new(&mut writebuffer);
         let view = writer.set("test").expect("write ok");
@@ -71,5 +75,27 @@ mod tests {
         let view = writer.finish().expect("ready");
         dbg!(&view.buffer);
         assert_eq!(format!("{view:?}"), "[[A, B, C], [test]]");
+    }
+
+    #[test]
+    fn example_struct() {
+        #[derive(Copy, Clone)]
+        struct MyStruct {
+            a: Vec<u32, SmallIndex>,
+            b: String<SmallIndex>,
+        }
+
+        #[repr(align(4))]
+        struct AlignedArray<const N: usize>([u8; N]);
+        let buffer = AlignedArray::<16>([
+            4, 2, 10, 4,
+            // Vec<u32>
+            42, 0, 0, 0,  21, 205, 123, 7,
+            // String "yolo"
+            121, 111, 108, 111
+        ]);
+
+        let str = View::<MyStruct>::new(&buffer.0[16..]);
+        assert_eq!(format!("{str:?}"), "test");
     }
 }

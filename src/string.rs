@@ -3,6 +3,7 @@ use std::fmt::Debug;
 
 /// String inside a flat buffer
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub struct String<IDX> {
     delta: IDX,
     length: IDX,

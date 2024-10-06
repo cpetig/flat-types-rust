@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 
 /// Vector inside a flat buffer
 #[derive(Copy, Clone)]
+#[allow(dead_code)]
 pub struct Vec<T, IDX: Copy> {
     delta: IDX,
     length: IDX,
