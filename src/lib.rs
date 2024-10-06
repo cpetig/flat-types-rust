@@ -1,5 +1,6 @@
 mod error;
 mod index_type;
+mod integers;
 mod string;
 mod vec;
 mod view;
@@ -14,9 +15,12 @@ pub use writer::{Assign, Creator, Fill};
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    mod mystruct;
 
-    type SmallIndex = u8;
+    use super::*;
+    use mystruct::{MyStruct, SmallIndex};
+
+    // type SmallIndex = u8;
 
     #[test]
     fn reading() {
@@ -26,7 +30,6 @@ mod tests {
             /* String */ b'B', /* String */ b'C', b'C',
             /* 2nd level entries (1 string) */ 2, 4, /* String */ b't', b'e', b's', b't',
         ];
-        /// Make intention explicit and distinguish from buffer bytes
         let str = View::<String<SmallIndex>>::new(&buffer[16..]);
         assert_eq!(format!("{str:?}"), "test");
         let str = View::<String<SmallIndex>>::new(&buffer[6..]);
@@ -79,23 +82,15 @@ mod tests {
 
     #[test]
     fn example_struct() {
-        #[derive(Copy, Clone)]
-        struct MyStruct {
-            a: Vec<u32, SmallIndex>,
-            b: String<SmallIndex>,
-        }
-
         #[repr(align(4))]
         struct AlignedArray<const N: usize>([u8; N]);
         let buffer = AlignedArray::<16>([
-            4, 2, 10, 4,
-            // Vec<u32>
-            42, 0, 0, 0,  21, 205, 123, 7,
-            // String "yolo"
-            121, 111, 108, 111
+            4, 2, 10, 4, // Vec<u32>
+            42, 0, 0, 0, 21, 205, 91, 7, // String "yolo"
+            121, 111, 108, 111,
         ]);
 
-        let str = View::<MyStruct>::new(&buffer.0[16..]);
-        assert_eq!(format!("{str:?}"), "test");
+        let str = View::<MyStruct>::new(&buffer.0);
+        assert_eq!(format!("{str:?}"), "MyStruct { a: [42, 123456789], b: yolo }");
     }
 }
