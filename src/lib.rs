@@ -91,6 +91,24 @@ mod tests {
         ]);
 
         let str = View::<MyStruct>::new(&buffer.0);
-        assert_eq!(format!("{str:?}"), "MyStruct { a: [42, 123456789], b: yolo }");
+        assert_eq!(
+            format!("{str:?}"),
+            "MyStruct { a: [42, 123456789], b: yolo }"
+        );
+
+        use mystruct::FillMyStruct;
+        let mut writebuffer = [0u8; 256];
+        let mut writer = Creator::<MyStruct>::new(&mut writebuffer);
+        writer.set_a(|mut w| {
+            w.allocate(3)?;
+            w.push(|s| s.set(1));
+            w.push(|s| s.set(2));
+            w.push(|s| s.set(3));
+            w.finish()
+        });
+        writer.set_b(|mut w| w.set("hello"));
+        let view = writer.finish().expect("ready");
+        dbg!(&view.buffer);
+        assert_eq!(format!("{view:?}"), "MyStruct { a: [1, 2, 3], b: hello }");
     }
 }
