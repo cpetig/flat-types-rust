@@ -32,3 +32,15 @@ impl<'a, IDX: IndexType + Copy> Assign<'a, &str, String<IDX>> for Creator<'a, St
         Ok(View::new(&self.buffer[0..self.current_end]))
     }
 }
+
+impl<'a, IDX: IndexType + Copy> super::view::Visit<&'a str> for View<'a, String<IDX>> {
+    fn visit<F: FnMut(&'a str)>(&self, mut f: F) {
+        let start = IDX::read(self.buffer);
+        let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
+        let view = &self.buffer[start..(start + len)];
+        let string = std::str::from_utf8(view)
+            .or_else(|e| std::str::from_utf8(&view[..e.valid_up_to()]))
+            .unwrap();
+        f(string);
+    }
+}

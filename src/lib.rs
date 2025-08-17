@@ -10,7 +10,7 @@ pub use error::Error;
 use index_type::IndexType;
 pub use string::String;
 pub use vec::Vec;
-pub use view::View;
+pub use view::{View, Visit};
 pub use writer::{Assign, Creator, Fill};
 
 #[cfg(test)]
@@ -19,8 +19,6 @@ mod tests {
 
     use super::*;
     use mystruct::{MyStruct, SmallIndex};
-
-    // type SmallIndex = u8;
 
     #[test]
     fn reading() {
@@ -48,6 +46,7 @@ mod tests {
         let writer = Creator::<String<SmallIndex>>::new(&mut writebuffer);
         let view = writer.set("test").expect("write ok");
         assert_eq!(format!("{view:?}"), "test");
+        view.visit(|v| assert_eq!(v, "test"));
 
         let mut writer = Creator::<Vec<String<SmallIndex>, SmallIndex>>::new(&mut writebuffer);
         writer.allocate(2).expect("root alloc");
@@ -55,6 +54,7 @@ mod tests {
         writer.push(|w| w.set("world")).expect("element created");
         let view = writer.finish().expect("ready");
         assert_eq!(format!("{view:?}"), "[hello, world]");
+        view.visit(|e| e.visit(|s| assert!(s == "hello" || s == "world")));
 
         let mut writer =
             Creator::<Vec<Vec<String<SmallIndex>, SmallIndex>, SmallIndex>>::new(&mut writebuffer);
@@ -99,14 +99,16 @@ mod tests {
         use mystruct::FillMyStruct;
         let mut writebuffer = [0u8; 256];
         let mut writer = Creator::<MyStruct>::new(&mut writebuffer);
-        writer.set_a(|mut w| {
-            w.allocate(3)?;
-            w.push(|s| s.set(1));
-            w.push(|s| s.set(2));
-            w.push(|s| s.set(3));
-            w.finish()
-        });
-        writer.set_b(|mut w| w.set("hello"));
+        writer
+            .set_a(|mut w| {
+                w.allocate(3)?;
+                w.push(|s| s.set(1))?;
+                w.push(|s| s.set(2))?;
+                w.push(|s| s.set(3))?;
+                w.finish()
+            })
+            .unwrap();
+        writer.set_b(|w| w.set("hello")).unwrap();
         let view = writer.finish().expect("ready");
         dbg!(&view.buffer);
         assert_eq!(format!("{view:?}"), "MyStruct { a: [1, 2, 3], b: hello }");

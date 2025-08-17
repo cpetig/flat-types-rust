@@ -13,4 +13,11 @@ impl<'a, T: Copy> View<'a, T> {
             phantom: PhantomData,
         }
     }
+    pub fn len(&self) -> usize {
+        self.buffer.len()
+    }
+}
+
+pub trait Visit<ELEM> {
+    fn visit<F: FnMut(ELEM)>(&self, f: F);
 }

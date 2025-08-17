@@ -30,6 +30,19 @@ where
     }
 }
 
+impl<'a, T: Copy, IDX: IndexType + Copy> super::view::Visit<View<'a, T>> for View<'a, Vec<T, IDX>> {
+    fn visit<F: FnMut(View<'a, T>)>(&self, mut f: F) {
+        let start = IDX::read(self.buffer);
+        let len = IDX::read(&self.buffer[std::mem::size_of::<IDX>()..]);
+        let elems = &self.buffer[start..];
+        let elemsize = std::mem::size_of::<T>();
+        for i in 0..len {
+            let elem = &elems[i * elemsize..];
+            f(View::<T>::new(elem));
+        }
+    }
+}
+
 impl<'a: 'short, 'short, T: Copy, IDX: IndexType + Copy> Fill<'a, 'short, Vec<T, IDX>, T>
     for Creator<'a, Vec<T, IDX>>
 {
